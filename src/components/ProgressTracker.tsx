@@ -1,0 +1,70 @@
+// ============================================
+// ProgressTracker — Shows the 5-step pipeline
+// ============================================
+
+import type { IncidentStatus } from '../types/incident';
+
+interface ProgressTrackerProps {
+  currentStatus: IncidentStatus;
+}
+
+const STEPS: { key: IncidentStatus; label: string }[] = [
+  { key: 'submitted', label: 'Submitted' },
+  { key: 'analyzed', label: 'AI Classification' },
+  { key: 'legal_review', label: 'Legal Review' },
+  { key: 'sent_to_authority', label: 'Sent to Authority' },
+  { key: 'authority_response', label: 'Authority Response' },
+];
+
+function getStepIndex(status: IncidentStatus): number {
+  if (status === 'unsupported') return 2;          // completed AI step, but unsupported
+  if (status === 'processing_failed') return 1;    // failed at AI step
+  const idx = STEPS.findIndex((s) => s.key === status);
+  return idx >= 0 ? idx : 0;
+}
+
+export default function ProgressTracker({ currentStatus }: ProgressTrackerProps) {
+  const currentIndex = getStepIndex(currentStatus);
+
+  return (
+    <div className="space-y-1">
+      {STEPS.map((step, i) => {
+        const isCompleted = i < currentIndex;
+        const isCurrent = i === currentIndex;
+        const isPending = i > currentIndex;
+        const isUnsupported = currentStatus === 'unsupported' && i === 1;
+        const isFailed = currentStatus === 'processing_failed' && i === 1;
+
+        let icon = '⬜';
+        let textColor = 'text-gray-400';
+        let label = step.label;
+
+        if (isFailed) {
+          icon = '❌';
+          textColor = 'text-red-600';
+          label = 'AI Classification — Processing failed';
+        } else if (isUnsupported) {
+          icon = '⚠️';
+          textColor = 'text-amber-600';
+          label = 'AI Classification — Unsupported issue type';
+        } else if (isCompleted) {
+          icon = '✅';
+          textColor = 'text-green-700';
+        } else if (isCurrent) {
+          icon = '🔄';
+          textColor = 'text-blue-700 font-semibold';
+        } else if (isPending) {
+          icon = '⬜';
+          textColor = 'text-gray-400';
+        }
+
+        return (
+          <div key={step.key} className={`flex items-center gap-3 py-2 ${textColor}`}>
+            <span className="text-xl">{icon}</span>
+            <span>{label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
