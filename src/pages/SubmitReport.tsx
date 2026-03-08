@@ -81,9 +81,15 @@ export default function SubmitReport() {
 
       // Step 3: Show success
       setIncidentId(result.incident_id);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Submit error:', err);
-      setError('Something went wrong submitting your report. Please try again.');
+      // Show the real error so we can debug it
+      const detail =
+        err?.response?.data?.error ||   // API Gateway / Lambda error body
+        err?.response?.data ||           // raw response body
+        err?.message ||                  // JS error message
+        String(err);
+      setError(`Error: ${detail}`);
     } finally {
       setSubmitting(false);
     }

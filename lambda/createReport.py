@@ -128,9 +128,9 @@ def lambda_handler(event, context):
         )
         
         # Generate presigned URL for file upload (valid for 5 minutes)
+        # ContentType MUST be in the presigned URL and match what the browser sends exactly
         upload_url = ''
         if input_type in ('image', 'voice'):
-            # Use the actual content type from the frontend, with sensible defaults
             if not content_type:
                 content_type = 'image/jpeg' if input_type == 'image' else 'audio/webm'
             upload_url = s3_client.generate_presigned_url(
