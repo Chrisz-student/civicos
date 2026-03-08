@@ -16,10 +16,12 @@ export default function StatusTracker() {
   const { incidentId } = useParams<{ incidentId: string }>();
   const [record, setRecord] = useState<IncidentRecord | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [notFound, setNotFound] = useState(false);
 
-  const fetchStatus = useCallback(async () => {
+  const fetchStatus = useCallback(async (isManual = false) => {
     if (!incidentId) return;
+    if (isManual) setRefreshing(true);
     try {
       const data = await getReportStatus(incidentId);
       if (data) {
@@ -32,13 +34,14 @@ export default function StatusTracker() {
       setNotFound(true);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [incidentId]);
 
   // Fetch on mount and auto-refresh every 30 seconds
   useEffect(() => {
     fetchStatus();
-    const interval = setInterval(fetchStatus, 30000);
+    const interval = setInterval(() => fetchStatus(), 30000);
     return () => clearInterval(interval);
   }, [fetchStatus]);
 
@@ -174,7 +177,10 @@ export default function StatusTracker() {
               <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                 Sent To
               </h2>
-              <p className="text-sm font-medium">{record.routing.department}</p>
+              <p className="text-sm font-medium">{(record.routing as any).authority || (record.routing as any).department || 'N/A'}</p>
+              {(record.routing as any).email && (
+                <p className="text-sm text-gray-500">{(record.routing as any).email}</p>
+              )}
             </div>
           )}
 
@@ -186,11 +192,16 @@ export default function StatusTracker() {
               </h2>
               <div className="text-sm space-y-1">
                 <p>
-                  {record.email.authority_email_sent ? '✅' : '⬜'} Sent to authority
+                  {(record.email as any).ses_message_id || (record.email as any).authority_email_sent ? '✅' : '⬜'} Sent to authority
                 </p>
                 <p>
-                  {record.email.citizen_cc_sent ? '✅' : '⬜'} You were CC'd
+                  {(record.email as any).cc_citizen || (record.email as any).citizen_cc_sent ? '✅' : '⬜'} You were CC'd
                 </p>
+                {(record.email as any).sent_at && (
+                  <p className="text-xs text-gray-400">
+                    Sent at {new Date((record.email as any).sent_at).toLocaleString()}
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -198,10 +209,11 @@ export default function StatusTracker() {
           {/* Refresh + back buttons */}
           <div className="border-t pt-4 flex gap-3">
             <button
-              onClick={fetchStatus}
-              className="flex-1 py-2 px-4 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+              onClick={() => fetchStatus(true)}
+              disabled={refreshing}
+              className="flex-1 py-2 px-4 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors text-sm"
             >
-              🔄 Refresh Status
+              {refreshing ? '⏳ Refreshing...' : '🔄 Refresh Status'}
             </button>
             <Link
               to="/"

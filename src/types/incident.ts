@@ -51,6 +51,7 @@ export type IncidentStatus =
   | 'processing_failed'  // Person 1B sets this if AI fails
   | 'legal_review'
   | 'sent_to_authority'
+  | 'sent'              // Pair 2 sets this after email is sent
   | 'authority_response'
   | 'unsupported';       // Person 1B sets this if category not supported
 
@@ -82,5 +83,6 @@ export interface SubmitReportPayload {
 /** What the API returns after a successful submit */
 export interface SubmitReportResponse {
   incident_id: string;
-  upload_url: string; // presigned S3 URL for file upload
+  upload_url: string;        // presigned S3 URL for the primary file (voice or image)
+  image_upload_url: string;  // presigned S3 URL for image — only set when voice + image both uploaded
 }

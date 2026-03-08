@@ -3,7 +3,7 @@
 // ============================================
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import VoiceRecorder from '../components/VoiceRecorder';
 import FileDropZone from '../components/FileDropZone';
 import LocationPicker from '../components/LocationPicker';
@@ -11,6 +11,8 @@ import { submitReport, uploadFileToS3 } from '../services/api';
 import type { GPS } from '../types/incident';
 
 export default function SubmitReport() {
+  const navigate = useNavigate();
+
   // Form state
   const [textContent, setTextContent] = useState('');
   const [location, setLocation] = useState('');
@@ -23,6 +25,9 @@ export default function SubmitReport() {
   const [submitting, setSubmitting] = useState(false);
   const [incidentId, setIncidentId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Status lookup state
+  const [lookupId, setLookupId] = useState('');
 
   // Figure out the input type to send
   const getInputType = (): 'voice' | 'image' | 'text' => {
@@ -63,20 +68,30 @@ export default function SubmitReport() {
       if (gps) {
         payload.gps = gps;
       }
-      // Tell the Lambda the actual file content type so the presigned URL matches
-      if (imageFile) {
-        payload.content_type = imageFile.type; // e.g. 'image/png' or 'image/jpeg'
-      } else if (voiceBlob) {
+      // Tell the Lambda the actual file content type so the presigned URL matches.
+      // Priority: voice > image (must match getInputType() order above)
+      if (voiceBlob) {
         payload.content_type = 'audio/webm';
+        // If user also attached an image, send its type so Lambda generates a second URL
+        if (imageFile) {
+          payload.image_content_type = imageFile.type;
+        }
+      } else if (imageFile) {
+        payload.content_type = imageFile.type;
       }
 
       const result = await submitReport(payload as any);
 
-      // Step 2: Upload the file to S3 if there is one
-      if (imageFile) {
-        await uploadFileToS3(result.upload_url, imageFile, imageFile.type);
-      } else if (voiceBlob) {
+      // Step 2: Upload files to S3
+      if (voiceBlob) {
         await uploadFileToS3(result.upload_url, voiceBlob, 'audio/webm');
+      }
+      // Upload image separately if we have one (works whether or not voice was also recorded)
+      if (imageFile) {
+        const imageUrl = result.image_upload_url || (voiceBlob ? '' : result.upload_url);
+        if (imageUrl) {
+          await uploadFileToS3(imageUrl, imageFile, imageFile.type);
+        }
       }
 
       // Step 3: Show success
@@ -195,6 +210,33 @@ export default function SubmitReport() {
             {submitting ? '⏳ Submitting...' : 'Submit Report'}
           </button>
         </form>
+
+        {/* Check existing report */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">
+            Already submitted a report?
+          </h2>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={lookupId}
+              onChange={(e) => setLookupId(e.target.value.toUpperCase())}
+              placeholder="Enter Incident ID (e.g. CIV-2026-35195)"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-mono"
+            />
+            <button
+              onClick={() => {
+                if (lookupId.trim()) {
+                  navigate(`/status/${lookupId.trim()}`);
+                }
+              }}
+              disabled={!lookupId.trim()}
+              className="px-5 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm font-medium whitespace-nowrap"
+            >
+              Check Status
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

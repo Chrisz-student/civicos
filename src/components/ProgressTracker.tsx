@@ -12,13 +12,14 @@ const STEPS: { key: IncidentStatus; label: string }[] = [
   { key: 'submitted', label: 'Submitted' },
   { key: 'analyzed', label: 'AI Classification' },
   { key: 'legal_review', label: 'Legal Review' },
-  { key: 'sent_to_authority', label: 'Sent to Authority' },
+  { key: 'sent', label: 'Sent to Authority' },
   { key: 'authority_response', label: 'Authority Response' },
 ];
 
 function getStepIndex(status: IncidentStatus): number {
   if (status === 'unsupported') return 2;          // completed AI step, but unsupported
   if (status === 'processing_failed') return 1;    // failed at AI step
+  if (status === 'sent_to_authority') return 3;    // alias for 'sent'
   const idx = STEPS.findIndex((s) => s.key === status);
   return idx >= 0 ? idx : 0;
 }

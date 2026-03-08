@@ -68,8 +68,9 @@ def lambda_handler(event, context):
         location = body.get('location', '')
         gps = body.get('gps', {'lat': 0, 'lng': 0})
         citizen_email = body.get('citizen_email', '')
-        input_type = body.get('input_type', 'text')  # 'voice', 'image', or 'text'
-        content_type = body.get('content_type', '')    # e.g. 'image/png', 'image/jpeg'
+        input_type = body.get('input_type', 'text')      # primary: 'voice', 'image', or 'text'
+        content_type = body.get('content_type', '')       # e.g. 'image/png', 'image/jpeg'
+        image_content_type = body.get('image_content_type', '')  # set when uploading both voice + image
         
         # Validate required fields
         if not citizen_email:
@@ -130,6 +131,8 @@ def lambda_handler(event, context):
         # Generate presigned URL for file upload (valid for 5 minutes)
         # ContentType MUST be in the presigned URL and match what the browser sends exactly
         upload_url = ''
+        image_upload_url = ''
+
         if input_type in ('image', 'voice'):
             if not content_type:
                 content_type = 'image/jpeg' if input_type == 'image' else 'audio/webm'
@@ -140,7 +143,21 @@ def lambda_handler(event, context):
                     'Key': s3_key,
                     'ContentType': content_type,
                 },
-                ExpiresIn=300,  # 5 minutes
+                ExpiresIn=300,
+            )
+
+        # If user submitted BOTH voice + image, also generate a presigned URL for the image
+        if input_type == 'voice' and image_content_type:
+            image_ext = 'png' if image_content_type == 'image/png' else 'jpg'
+            image_s3_key = f"uploads/image/{incident_id}.{image_ext}"
+            image_upload_url = s3_client.generate_presigned_url(
+                'put_object',
+                Params={
+                    'Bucket': UPLOAD_BUCKET,
+                    'Key': image_s3_key,
+                    'ContentType': image_content_type,
+                },
+                ExpiresIn=300,
             )
         
         # Return success
@@ -150,6 +167,7 @@ def lambda_handler(event, context):
             'body': json.dumps({
                 'incident_id': incident_id,
                 'upload_url': upload_url,
+                'image_upload_url': image_upload_url,  # non-empty only when voice + image both present
             }),
         }
     
