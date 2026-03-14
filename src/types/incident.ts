@@ -49,6 +49,7 @@ export type IncidentStatus =
   | 'submitted'
   | 'analyzed'           // Person 1B sets this after AI classification
   | 'processing_failed'  // Person 1B sets this if AI fails
+  | 'needs_location'     // Person 1B sets this when location cannot be extracted from text/audio
   | 'legal_review'
   | 'sent_to_authority'
   | 'sent'              // Pair 2 sets this after email is sent
@@ -73,8 +74,8 @@ export interface IncidentRecord {
 
 /** What the frontend sends when submitting a new report */
 export interface SubmitReportPayload {
-  text_content: string;
-  location: string;
+  text_content?: string;   // Text description — required for text input, optional for image/voice
+  location?: string;       // Required for image input; omitted for text/audio (AI extracts it)
   gps?: GPS;               // Optional — only included if coordinates available
   citizen_email: string;
   input_type: 'voice' | 'image' | 'text';

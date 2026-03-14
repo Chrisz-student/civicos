@@ -1,50 +1,50 @@
-// ============================================
-// Screen 1 — Submit a Report (Multi-step wizard)
-// Steps: 1) Location  2) Evidence  3) Description  4) Email + Submit
-// GSAP slide-in from right on each step
+﻿// ============================================
+// Screen 1 â€” Submit a Report (Multi-step wizard)
+// Steps:
+//   1) Choose input type (Image / Text / Audio)
+//   2) Provide content   (conditional on type)
+//   3) Email address
+//   4) Review + Submit
+// GSAP slide-in from right on each step advance
 // ============================================
 
-<<<<<<< HEAD
 import { useState, useRef, useLayoutEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
-=======
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
->>>>>>> main
 import VoiceRecorder from '../components/VoiceRecorder';
 import FileDropZone from '../components/FileDropZone';
-import LocationPicker from '../components/LocationPicker';
 import { submitReport, uploadFileToS3 } from '../services/api';
 import type { GPS } from '../types/incident';
 
 const TOTAL_STEPS = 4;
 
+type InputType = 'image' | 'text' | 'audio';
+
 export default function SubmitReport() {
   const navigate = useNavigate();
 
-<<<<<<< HEAD
   // ---- Wizard state ----
   const [step, setStep] = useState(1);
   const stepRef = useRef<HTMLDivElement>(null);
 
-  // ---- Form state ----
-=======
-  // Form state
->>>>>>> main
-  const [textContent, setTextContent] = useState('');
-  const [location, setLocation] = useState('');
+  // ---- Input type ----
+  const [inputType, setInputType] = useState<InputType | null>(null);
+
+  // ---- Content state (only the relevant field is used per type) ----
+  const [textContent, setTextContent] = useState('');        // type=text
+  const [imageFile, setImageFile] = useState<File | null>(null);   // type=image
+  const [imageLocation, setImageLocation] = useState('');    // type=image â€” separate location field
+  const [voiceBlob, setVoiceBlob] = useState<Blob | null>(null);   // type=audio
   const [gps, setGps] = useState<GPS | null>(null);
+
+  // ---- Email ----
   const [email, setEmail] = useState('');
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [voiceBlob, setVoiceBlob] = useState<Blob | null>(null);
 
   // ---- Submission state ----
   const [submitting, setSubmitting] = useState(false);
   const [incidentId, setIncidentId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-<<<<<<< HEAD
   // ---- Status lookup ----
   const [lookupId, setLookupId] = useState('');
 
@@ -59,7 +59,6 @@ export default function SubmitReport() {
     );
   }, []);
 
-  // Run on step change
   useLayoutEffect(() => {
     animateIn('right');
   }, [step, animateIn]);
@@ -67,11 +66,37 @@ export default function SubmitReport() {
   // ---- Navigation helpers ----
   const goNext = () => {
     setError(null);
-    // Step-level validation
-    if (step === 1 && !location.trim()) {
-      setError('Please provide a location before continuing.');
+
+    // Per-step validation
+    if (step === 1 && !inputType) {
+      setError('Please choose an input type to continue.');
       return;
     }
+    if (step === 2) {
+      if (inputType === 'image') {
+        if (!imageFile) {
+          setError('Please upload an image.');
+          return;
+        }
+        if (!imageLocation.trim()) {
+          setError('Please enter the location of the issue (Auckland address or landmark).');
+          return;
+        }
+      }
+      if (inputType === 'text' && !textContent.trim()) {
+        setError('Please describe the issue before continuing.');
+        return;
+      }
+      if (inputType === 'audio' && !voiceBlob) {
+        setError('Please record your voice description before continuing.');
+        return;
+      }
+    }
+    if (step === 3 && !email.trim()) {
+      setError('Please enter your email address.');
+      return;
+    }
+
     if (step < TOTAL_STEPS) {
       gsap.to(stepRef.current, {
         x: -300,
@@ -91,39 +116,28 @@ export default function SubmitReport() {
         opacity: 0,
         duration: 0.3,
         ease: 'power3.in',
-        onComplete: () => {
-          setStep((s) => s - 1);
-          // after state updates, animateIn('left') fires via useLayoutEffect but we still want 'left'
-        },
+        onComplete: () => setStep((s) => s - 1),
       });
     }
   };
 
-  // ---- Input type helper ----
-=======
-  // Status lookup state
-  const [lookupId, setLookupId] = useState('');
-
-  // Figure out the input type to send
->>>>>>> main
-  const getInputType = (): 'voice' | 'image' | 'text' => {
-    if (voiceBlob) return 'voice';
-    if (imageFile) return 'image';
-    return 'text';
+  // ---- Choose type and immediately advance ----
+  const selectInputType = (type: InputType) => {
+    setInputType(type);
+    setError(null);
+    gsap.to(stepRef.current, {
+      x: -300,
+      opacity: 0,
+      duration: 0.3,
+      ease: 'power3.in',
+      onComplete: () => setStep(2),
+    });
   };
 
   // ---- Submit handler ----
   const handleSubmit = async () => {
     setError(null);
 
-    if (!textContent.trim() && !voiceBlob && !imageFile) {
-      setError('Please provide at least a description, voice recording, or photo.');
-      return;
-    }
-    if (!location.trim()) {
-      setError('Please provide a location.');
-      return;
-    }
     if (!email.trim()) {
       setError('Please provide your email address.');
       return;
@@ -133,75 +147,40 @@ export default function SubmitReport() {
 
     try {
       const payload: Record<string, unknown> = {
-        text_content: textContent,
-        location,
         citizen_email: email,
-        input_type: getInputType(),
+        input_type: inputType,
       };
-<<<<<<< HEAD
-      if (gps) payload.gps = gps;
 
-      // Tell Lambda the actual content type so presigned URL matches
-      if (voiceBlob) {
+      if (inputType === 'image') {
+        // Location supplied from separate text input; AI analyses the image for context
+        payload.location = imageLocation;
+        payload.content_type = imageFile!.type;
+      } else if (inputType === 'text') {
+        // No location field â€” AI extracts it from the text
+        payload.text_content = textContent;
+      } else if (inputType === 'audio') {
+        // No location field â€” AI extracts it from the transcript
         payload.content_type = 'audio/webm';
-        if (imageFile) payload.image_content_type = imageFile.type;
-=======
-      // Only include GPS if we have real coordinates
-      if (gps) {
-        payload.gps = gps;
       }
-      // Tell the Lambda the actual file content type so the presigned URL matches.
-      // Priority: voice > image (must match getInputType() order above)
-      if (voiceBlob) {
-        payload.content_type = 'audio/webm';
-        // If user also attached an image, send its type so Lambda generates a second URL
-        if (imageFile) {
-          payload.image_content_type = imageFile.type;
-        }
->>>>>>> main
-      } else if (imageFile) {
-        payload.content_type = imageFile.type;
-      }
+
+      if (gps) payload.gps = gps;
 
       const result = await submitReport(payload as any);
 
-<<<<<<< HEAD
-      // Upload files to S3
-      if (voiceBlob) {
+      // Upload the file to S3
+      if (inputType === 'audio' && voiceBlob) {
         await uploadFileToS3(result.upload_url, voiceBlob, 'audio/webm');
-      }
-      if (imageFile) {
-        const imageUrl = (result as any).image_upload_url || (voiceBlob ? '' : result.upload_url);
-        if (imageUrl) await uploadFileToS3(imageUrl, imageFile, imageFile.type);
-=======
-      // Step 2: Upload files to S3
-      if (voiceBlob) {
-        await uploadFileToS3(result.upload_url, voiceBlob, 'audio/webm');
-      }
-      // Upload image separately if we have one (works whether or not voice was also recorded)
-      if (imageFile) {
-        const imageUrl = result.image_upload_url || (voiceBlob ? '' : result.upload_url);
-        if (imageUrl) {
-          await uploadFileToS3(imageUrl, imageFile, imageFile.type);
-        }
->>>>>>> main
+      } else if (inputType === 'image' && imageFile) {
+        await uploadFileToS3(result.upload_url, imageFile, imageFile.type);
       }
 
       setIncidentId(result.incident_id);
     } catch (err: any) {
       console.error('Submit error:', err);
-<<<<<<< HEAD
       const detail =
         err?.response?.data?.error ||
         err?.response?.data ||
         err?.message ||
-=======
-      // Show the real error so we can debug it
-      const detail =
-        err?.response?.data?.error ||   // API Gateway / Lambda error body
-        err?.response?.data ||           // raw response body
-        err?.message ||                  // JS error message
->>>>>>> main
         String(err);
       setError(`Error: ${detail}`);
     } finally {
@@ -216,7 +195,7 @@ export default function SubmitReport() {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="glass-card-orange p-8 max-w-md w-full text-center space-y-5">
-          <div className="text-5xl">✅</div>
+          <div className="text-5xl">âœ…</div>
           <h1 className="text-2xl font-bold text-white">Report Submitted!</h1>
           <p className="text-white/70">Your incident ID is:</p>
           <p className="text-2xl font-mono font-bold text-orange-400">{incidentId}</p>
@@ -227,7 +206,7 @@ export default function SubmitReport() {
             to={`/status/${incidentId}`}
             className="btn-cone inline-block mt-4 px-8 py-3 text-center"
           >
-            Track Report Status →
+            Track Report Status â†’
           </Link>
         </div>
       </div>
@@ -251,17 +230,12 @@ export default function SubmitReport() {
       <div className="flex items-center gap-3 mb-8">
         {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((s) => (
           <div key={s} className="flex items-center gap-3">
-            <div
-              className={`step-dot ${s === step ? 'active' : s < step ? 'done' : ''}`}
-            />
+            <div className={`step-dot ${s === step ? 'active' : s < step ? 'done' : ''}`} />
             {s < TOTAL_STEPS && (
               <div
                 className="h-px w-8"
                 style={{
-                  background:
-                    s < step
-                      ? 'rgba(74, 222, 128, 0.5)'
-                      : 'rgba(255, 255, 255, 0.15)',
+                  background: s < step ? 'rgba(74,222,128,0.5)' : 'rgba(255,255,255,0.15)',
                 }}
               />
             )}
@@ -269,80 +243,188 @@ export default function SubmitReport() {
         ))}
       </div>
 
-      {/* Step panel — overflow hidden to clip slide animations */}
+      {/* Step panel */}
       <div className="w-full max-w-lg overflow-hidden">
         <div ref={stepRef} className="wizard-step">
-          {/* ==== STEP 1: Location ==== */}
+
+          {/* ==== STEP 1: Choose input type ==== */}
           {step === 1 && (
             <div className="glass-card-orange p-6 space-y-5">
               <div className="text-center">
-                <span className="text-3xl">📍</span>
-                <h2 className="text-xl font-bold text-white mt-2">Where is the issue?</h2>
-                <p className="text-sm text-white/50 mt-1">Enter the location or paste GPS coordinates</p>
+                <span className="text-3xl">ðŸ“‹</span>
+                <h2 className="text-xl font-bold text-white mt-2">How would you like to report?</h2>
+                <p className="text-sm text-white/50 mt-1">Choose the type of evidence you have</p>
               </div>
 
-              <LocationPicker
-                onLocationChange={(loc, coords) => {
-                  setLocation(loc);
-                  setGps(coords);
-                }}
-              />
+              <div className="grid grid-cols-1 gap-3">
+                {/* Image card */}
+                <button
+                  type="button"
+                  onClick={() => selectInputType('image')}
+                  className="flex items-center gap-4 p-4 rounded-xl text-left transition-all"
+                  style={{
+                    background: 'rgba(255,255,255,0.07)',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                  }}
+                >
+                  <span className="text-3xl">ðŸ“¸</span>
+                  <div>
+                    <p className="font-semibold text-white">Photo</p>
+                    <p className="text-xs text-white/50 mt-0.5">
+                      Upload an image â€” AI analyses the issue from the photo. You'll supply the location separately.
+                    </p>
+                  </div>
+                </button>
+
+                {/* Text card */}
+                <button
+                  type="button"
+                  onClick={() => selectInputType('text')}
+                  className="flex items-center gap-4 p-4 rounded-xl text-left transition-all"
+                  style={{
+                    background: 'rgba(255,255,255,0.07)',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                  }}
+                >
+                  <span className="text-3xl">ðŸ“</span>
+                  <div>
+                    <p className="font-semibold text-white">Text</p>
+                    <p className="text-xs text-white/50 mt-0.5">
+                      Describe the issue in writing â€” AI will extract the location and classify it automatically.
+                    </p>
+                  </div>
+                </button>
+
+                {/* Audio card */}
+                <button
+                  type="button"
+                  onClick={() => selectInputType('audio')}
+                  className="flex items-center gap-4 p-4 rounded-xl text-left transition-all"
+                  style={{
+                    background: 'rgba(255,255,255,0.07)',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                  }}
+                >
+                  <span className="text-3xl">ðŸŽ¤</span>
+                  <div>
+                    <p className="font-semibold text-white">Voice Recording</p>
+                    <p className="text-xs text-white/50 mt-0.5">
+                      Record a voice message â€” AI transcribes it and extracts the location automatically.
+                    </p>
+                  </div>
+                </button>
+              </div>
             </div>
           )}
 
-          {/* ==== STEP 2: Evidence (Photo / Voice) ==== */}
-          {step === 2 && (
+          {/* ==== STEP 2: Content (conditional on input type) ==== */}
+          {step === 2 && inputType === 'image' && (
             <div className="glass-card-orange p-6 space-y-5">
               <div className="text-center">
-                <span className="text-3xl">📸</span>
-                <h2 className="text-xl font-bold text-white mt-2">Add Evidence</h2>
-                <p className="text-sm text-white/50 mt-1">Upload a photo or record a voice description (optional)</p>
+                <span className="text-3xl">ðŸ“¸</span>
+                <h2 className="text-xl font-bold text-white mt-2">Upload Your Photo</h2>
+                <p className="text-sm text-white/50 mt-1">AI will analyse the image and classify the issue</p>
               </div>
 
               <FileDropZone onFileSelected={setImageFile} />
-              <VoiceRecorder onRecordingComplete={setVoiceBlob} />
-            </div>
-          )}
 
-          {/* ==== STEP 3: Description ==== */}
-          {step === 3 && (
-            <div className="glass-card-orange p-6 space-y-5">
-              <div className="text-center">
-                <span className="text-3xl">📝</span>
-                <h2 className="text-xl font-bold text-white mt-2">Describe the Issue</h2>
-                <p className="text-sm text-white/50 mt-1">Tell us what's happening in your own words</p>
-              </div>
-
-              <textarea
-                value={textContent}
-                onChange={(e) => setTextContent(e.target.value)}
-                rows={5}
-                placeholder="e.g. Large pothole on Queen Street, near the intersection with K Road. It's been there for 2 weeks."
-                className="dark-input w-full resize-none"
-              />
-
-              {/* 111 emergency warning */}
-              <div className="rounded-xl p-4" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)' }}>
-                <p className="text-sm text-red-300 font-semibold">🚨 Is this an emergency?</p>
-                <p className="text-xs text-red-200/70 mt-1">
-                  If someone is in immediate danger, do not use this form.
-                  Call <span className="font-bold text-red-300">111</span> (NZ Emergency Services) immediately.
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-white/70">
+                  ðŸ“ Where is the issue?
+                </label>
+                <input
+                  type="text"
+                  value={imageLocation}
+                  onChange={(e) => setImageLocation(e.target.value)}
+                  placeholder="e.g. 142 Queen Street, Auckland CBD"
+                  className="dark-input w-full"
+                />
+                <p className="text-xs text-white/40">
+                  Enter an Auckland address, street intersection, or well-known landmark.
                 </p>
               </div>
             </div>
           )}
 
-          {/* ==== STEP 4: Email + Review + Submit ==== */}
-          {step === 4 && (
+          {step === 2 && inputType === 'text' && (
             <div className="glass-card-orange p-6 space-y-5">
               <div className="text-center">
-                <span className="text-3xl">✉️</span>
-                <h2 className="text-xl font-bold text-white mt-2">Almost Done!</h2>
-                <p className="text-sm text-white/50 mt-1">Enter your email and review your report</p>
+                <span className="text-3xl">ðŸ“</span>
+                <h2 className="text-xl font-bold text-white mt-2">Describe the Issue</h2>
+                <p className="text-sm text-white/50 mt-1">AI will extract the location and classify the report</p>
+              </div>
+
+              <textarea
+                value={textContent}
+                onChange={(e) => setTextContent(e.target.value)}
+                rows={6}
+                placeholder="e.g. There is a large pothole on Queen Street near the K Road intersection that has been there for two weeks and is causing damage to vehicles."
+                className="dark-input w-full resize-none"
+              />
+
+              <div
+                className="rounded-xl p-3 text-xs"
+                style={{ background: 'rgba(249,115,22,0.12)', border: '1px solid rgba(249,115,22,0.3)' }}
+              >
+                <p className="text-orange-300 font-semibold">ðŸ“ Location tip</p>
+                <p className="text-orange-200/70 mt-1">
+                  Include a specific Auckland street name, address, or well-known landmark (e.g. "in front of Sky Tower", "corner of Ponsonby Road and Franklin Road"). Vague references like "the road near me" cannot be processed.
+                </p>
+              </div>
+
+              {/* Emergency warning */}
+              <div className="rounded-xl p-4" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)' }}>
+                <p className="text-sm text-red-300 font-semibold">ðŸš¨ Is this an emergency?</p>
+                <p className="text-xs text-red-200/70 mt-1">
+                  If someone is in immediate danger, do not use this form. Call{' '}
+                  <span className="font-bold text-red-300">111</span> immediately.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && inputType === 'audio' && (
+            <div className="glass-card-orange p-6 space-y-5">
+              <div className="text-center">
+                <span className="text-3xl">ðŸŽ¤</span>
+                <h2 className="text-xl font-bold text-white mt-2">Record Your Report</h2>
+                <p className="text-sm text-white/50 mt-1">Speak naturally â€” AI will transcribe and classify it</p>
+              </div>
+
+              <VoiceRecorder onRecordingComplete={setVoiceBlob} />
+
+              <div
+                className="rounded-xl p-3 text-xs"
+                style={{ background: 'rgba(249,115,22,0.12)', border: '1px solid rgba(249,115,22,0.3)' }}
+              >
+                <p className="text-orange-300 font-semibold">ðŸ“ Location tip</p>
+                <p className="text-orange-200/70 mt-1">
+                  Make sure to say a specific Auckland street name or landmark (e.g. "outside the Countdown on Queen Street"). Vague directions cannot be processed.
+                </p>
+              </div>
+
+              {/* Emergency warning */}
+              <div className="rounded-xl p-4" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)' }}>
+                <p className="text-sm text-red-300 font-semibold">ðŸš¨ Is this an emergency?</p>
+                <p className="text-xs text-red-200/70 mt-1">
+                  If someone is in immediate danger, do not use this form. Call{' '}
+                  <span className="font-bold text-red-300">111</span> immediately.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* ==== STEP 3: Email ==== */}
+          {step === 3 && (
+            <div className="glass-card-orange p-6 space-y-5">
+              <div className="text-center">
+                <span className="text-3xl">âœ‰ï¸</span>
+                <h2 className="text-xl font-bold text-white mt-2">Your Email</h2>
+                <p className="text-sm text-white/50 mt-1">We'll send you updates and CC you on the council email</p>
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-white/70">Your Email</label>
+                <label className="block text-sm font-medium text-white/70">Email Address</label>
                 <input
                   type="email"
                   value={email}
@@ -354,52 +436,94 @@ export default function SubmitReport() {
                   You'll be CC'd on the formal email sent to the council.
                 </p>
               </div>
-
-              {/* Review summary */}
-              <div className="rounded-xl p-4 space-y-2" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <p className="text-xs font-semibold text-white/60 uppercase tracking-wide">Review</p>
-                <div className="text-sm text-white/80 space-y-1">
-                  <p>📍 <span className="text-white/50">Location:</span> {location || <span className="italic text-white/30">not set</span>}</p>
-                  <p>📸 <span className="text-white/50">Photo:</span> {imageFile ? imageFile.name : <span className="italic text-white/30">none</span>}</p>
-                  <p>🎤 <span className="text-white/50">Voice:</span> {voiceBlob ? 'Recorded' : <span className="italic text-white/30">none</span>}</p>
-                  <p>📝 <span className="text-white/50">Description:</span> {textContent ? textContent.slice(0, 60) + (textContent.length > 60 ? '…' : '') : <span className="italic text-white/30">none</span>}</p>
-                </div>
-              </div>
             </div>
           )}
+
+          {/* ==== STEP 4: Review + Submit ==== */}
+          {step === 4 && (
+            <div className="glass-card-orange p-6 space-y-5">
+              <div className="text-center">
+                <span className="text-3xl">ðŸš€</span>
+                <h2 className="text-xl font-bold text-white mt-2">Review & Submit</h2>
+                <p className="text-sm text-white/50 mt-1">Check your report before sending</p>
+              </div>
+
+              <div
+                className="rounded-xl p-4 space-y-2"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+              >
+                <p className="text-xs font-semibold text-white/60 uppercase tracking-wide">Summary</p>
+                <div className="text-sm text-white/80 space-y-1">
+                  <p>
+                    ðŸ“‹ <span className="text-white/50">Type:</span>{' '}
+                    {inputType === 'image' ? 'ðŸ“¸ Photo' : inputType === 'text' ? 'ðŸ“ Text' : 'ðŸŽ¤ Audio'}
+                  </p>
+                  {inputType === 'image' && (
+                    <>
+                      <p>ðŸ“ <span className="text-white/50">Location:</span> {imageLocation || <span className="italic text-white/30">not set</span>}</p>
+                      <p>ðŸ“¸ <span className="text-white/50">Photo:</span> {imageFile ? imageFile.name : <span className="italic text-white/30">none</span>}</p>
+                    </>
+                  )}
+                  {inputType === 'text' && (
+                    <p>ðŸ“ <span className="text-white/50">Description:</span>{' '}
+                      {textContent ? textContent.slice(0, 80) + (textContent.length > 80 ? 'â€¦' : '') : <span className="italic text-white/30">none</span>}
+                    </p>
+                  )}
+                  {inputType === 'audio' && (
+                    <p>ðŸŽ¤ <span className="text-white/50">Voice:</span> {voiceBlob ? 'Recorded âœ…' : <span className="italic text-white/30">none</span>}</p>
+                  )}
+                  <p>âœ‰ï¸ <span className="text-white/50">Email:</span> {email}</p>
+                </div>
+              </div>
+
+              {inputType !== 'image' && (
+                <div
+                  className="rounded-xl p-3 text-xs"
+                  style={{ background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.25)' }}
+                >
+                  <p className="text-orange-300/80">
+                    â„¹ï¸ AI will extract the location from your {inputType === 'audio' ? 'voice recording' : 'description'}. If no recognisable Auckland location is found, you'll be asked to re-submit.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
         </div>
       </div>
 
       {/* Error message */}
       {error && (
-        <div className="max-w-lg w-full mt-4 p-3 rounded-xl text-sm" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#fca5a5' }}>
+        <div
+          className="max-w-lg w-full mt-4 p-3 rounded-xl text-sm"
+          style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#fca5a5' }}
+        >
           {error}
         </div>
       )}
 
-      {/* Navigation buttons */}
-      <div className="max-w-lg w-full mt-6 flex gap-3">
-        {step > 1 && (
+      {/* Navigation buttons â€” hidden on step 1 (type cards auto-advance) */}
+      {step > 1 && (
+        <div className="max-w-lg w-full mt-6 flex gap-3">
           <button type="button" onClick={goBack} className="btn-ghost flex-1">
-            ← Back
+            â† Back
           </button>
-<<<<<<< HEAD
-        )}
-        {step < TOTAL_STEPS ? (
-          <button type="button" onClick={goNext} className="btn-cone flex-1 py-3 text-lg">
-            Next →
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="btn-cone flex-1 py-3 text-lg"
-          >
-            {submitting ? '⏳ Submitting...' : '🚀 Submit Report'}
-          </button>
-        )}
-      </div>
+          {step < TOTAL_STEPS ? (
+            <button type="button" onClick={goNext} className="btn-cone flex-1 py-3 text-lg">
+              Next â†’
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="btn-cone flex-1 py-3 text-lg"
+            >
+              {submitting ? 'â³ Submitting...' : 'ðŸš€ Submit Report'}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Check existing report */}
       <div className="max-w-lg w-full mt-8 glass-card p-5">
@@ -420,35 +544,6 @@ export default function SubmitReport() {
           >
             Check Status
           </button>
-=======
-        </form>
-
-        {/* Check existing report */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">
-            Already submitted a report?
-          </h2>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={lookupId}
-              onChange={(e) => setLookupId(e.target.value.toUpperCase())}
-              placeholder="Enter Incident ID (e.g. CIV-2026-35195)"
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-mono"
-            />
-            <button
-              onClick={() => {
-                if (lookupId.trim()) {
-                  navigate(`/status/${lookupId.trim()}`);
-                }
-              }}
-              disabled={!lookupId.trim()}
-              className="px-5 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm font-medium whitespace-nowrap"
-            >
-              Check Status
-            </button>
-          </div>
->>>>>>> main
         </div>
       </div>
     </div>

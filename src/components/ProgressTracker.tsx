@@ -1,5 +1,5 @@
-// ============================================
-// ProgressTracker — Shows the 5-step pipeline
+﻿// ============================================
+// ProgressTracker â€” Shows the 5-step pipeline
 // Dark theme variant
 // ============================================
 
@@ -18,15 +18,10 @@ const STEPS: { key: IncidentStatus; label: string }[] = [
 ];
 
 function getStepIndex(status: IncidentStatus): number {
-<<<<<<< HEAD
   if (status === 'unsupported') return 2;
   if (status === 'processing_failed') return 1;
+  if (status === 'needs_location') return 1;
   if (status === 'sent_to_authority') return STEPS.findIndex((s) => s.key === 'sent');
-=======
-  if (status === 'unsupported') return 2;          // completed AI step, but unsupported
-  if (status === 'processing_failed') return 1;    // failed at AI step
-  if (status === 'sent_to_authority') return 3;    // alias for 'sent'
->>>>>>> main
   const idx = STEPS.findIndex((s) => s.key === status);
   return idx >= 0 ? idx : 0;
 }
@@ -42,27 +37,32 @@ export default function ProgressTracker({ currentStatus }: ProgressTrackerProps)
         const isPending = i > currentIndex;
         const isUnsupported = currentStatus === 'unsupported' && i === 1;
         const isFailed = currentStatus === 'processing_failed' && i === 1;
+        const isNeedsLocation = currentStatus === 'needs_location' && i === 1;
 
-        let icon = '⬜';
+        let icon = 'â¬œ';
         let textColor = 'text-white/30';
         let label = step.label;
 
         if (isFailed) {
-          icon = '❌';
+          icon = 'âŒ';
           textColor = 'text-red-400';
-          label = 'AI Classification — Processing failed';
+          label = 'AI Classification â€” Processing failed';
         } else if (isUnsupported) {
-          icon = '⚠️';
+          icon = 'âš ï¸';
           textColor = 'text-yellow-400';
-          label = 'AI Classification — Unsupported issue type';
+          label = 'AI Classification â€” Unsupported issue type';
+        } else if (isNeedsLocation) {
+          icon = 'ðŸ“';
+          textColor = 'text-orange-400';
+          label = 'AI Classification â€” Location not specific enough';
         } else if (isCompleted) {
-          icon = '✅';
+          icon = 'âœ…';
           textColor = 'text-green-400';
         } else if (isCurrent) {
-          icon = '🔄';
+          icon = 'ðŸ”„';
           textColor = 'text-orange-400 font-semibold';
         } else if (isPending) {
-          icon = '⬜';
+          icon = 'â¬œ';
           textColor = 'text-white/30';
         }
 
@@ -76,3 +76,4 @@ export default function ProgressTracker({ currentStatus }: ProgressTrackerProps)
     </div>
   );
 }
+
