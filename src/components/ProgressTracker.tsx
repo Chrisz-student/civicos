@@ -1,5 +1,6 @@
 // ============================================
 // ProgressTracker — Shows the 5-step pipeline
+// Dark theme variant
 // ============================================
 
 import type { IncidentStatus } from '../types/incident';
@@ -17,9 +18,15 @@ const STEPS: { key: IncidentStatus; label: string }[] = [
 ];
 
 function getStepIndex(status: IncidentStatus): number {
+<<<<<<< HEAD
+  if (status === 'unsupported') return 2;
+  if (status === 'processing_failed') return 1;
+  if (status === 'sent_to_authority') return STEPS.findIndex((s) => s.key === 'sent');
+=======
   if (status === 'unsupported') return 2;          // completed AI step, but unsupported
   if (status === 'processing_failed') return 1;    // failed at AI step
   if (status === 'sent_to_authority') return 3;    // alias for 'sent'
+>>>>>>> main
   const idx = STEPS.findIndex((s) => s.key === status);
   return idx >= 0 ? idx : 0;
 }
@@ -37,26 +44,26 @@ export default function ProgressTracker({ currentStatus }: ProgressTrackerProps)
         const isFailed = currentStatus === 'processing_failed' && i === 1;
 
         let icon = '⬜';
-        let textColor = 'text-gray-400';
+        let textColor = 'text-white/30';
         let label = step.label;
 
         if (isFailed) {
           icon = '❌';
-          textColor = 'text-red-600';
+          textColor = 'text-red-400';
           label = 'AI Classification — Processing failed';
         } else if (isUnsupported) {
           icon = '⚠️';
-          textColor = 'text-amber-600';
+          textColor = 'text-yellow-400';
           label = 'AI Classification — Unsupported issue type';
         } else if (isCompleted) {
           icon = '✅';
-          textColor = 'text-green-700';
+          textColor = 'text-green-400';
         } else if (isCurrent) {
           icon = '🔄';
-          textColor = 'text-blue-700 font-semibold';
+          textColor = 'text-orange-400 font-semibold';
         } else if (isPending) {
           icon = '⬜';
-          textColor = 'text-gray-400';
+          textColor = 'text-white/30';
         }
 
         return (

@@ -77,7 +77,7 @@ export default function LocationPicker({ onLocationChange }: LocationPickerProps
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
+      <label className="block text-sm font-medium text-white/70">
         Location
       </label>
       <input
@@ -85,9 +85,9 @@ export default function LocationPicker({ onLocationChange }: LocationPickerProps
         value={locationText}
         onChange={(e) => handleChange(e.target.value)}
         placeholder="e.g. Queen Street near K Road  or  -36.853028, 174.762639"
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        className="dark-input w-full"
       />
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-white/40">
         {detecting
           ? '📍 Detecting your location...'
           : detected
