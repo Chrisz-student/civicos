@@ -1,9 +1,130 @@
 @import "tailwindcss";
 
+/* ============================================
+   CivicOS — Traffic Cone Theme
+   Dark blue-purple background
+   Bright orange + white accents (traffic cones)
+   ============================================ */
+
+:root {
+  /* Background gradient stops */
+  --bg-from: #0f0c29;
+  --bg-via: #1a1440;
+  --bg-to: #24243e;
+
+  /* Orange accent (traffic cone) */
+  --cone-orange: #ff6b1a;
+  --cone-orange-light: #ff8c42;
+  --cone-orange-glow: rgba(255, 107, 26, 0.35);
+
+  /* Card / panel */
+  --card-bg: rgba(255, 255, 255, 0.06);
+  --card-border: rgba(255, 255, 255, 0.12);
+  --card-border-hover: rgba(255, 140, 66, 0.4);
+}
+
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #f8fafc;
-  color: #1e293b;
+  background: linear-gradient(135deg, var(--bg-from) 0%, var(--bg-via) 50%, var(--bg-to) 100%);
+  background-attachment: fixed;
+  color: #e2e8f0;
   font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Glassmorphism card */
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Orange-bordered card variant */
+.glass-card-orange {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 2px solid var(--cone-orange);
+  border-radius: 1rem;
+  box-shadow: 0 0 20px var(--cone-orange-glow), 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Primary button (traffic cone orange) */
+.btn-cone {
+  background: linear-gradient(135deg, var(--cone-orange) 0%, var(--cone-orange-light) 100%);
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 14px var(--cone-orange-glow);
+}
+.btn-cone:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px var(--cone-orange-glow);
+}
+.btn-cone:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Ghost / secondary button */
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+/* Text input override for dark theme */
+.dark-input {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 0.6rem 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.dark-input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+.dark-input:focus {
+  outline: none;
+  border-color: var(--cone-orange);
+  box-shadow: 0 0 0 3px var(--cone-orange-glow);
+}
+
+/* Progress dots */
+.step-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+.step-dot.active {
+  background: var(--cone-orange);
+  box-shadow: 0 0 10px var(--cone-orange-glow);
+}
+.step-dot.done {
+  background: #4ade80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+}
+
+/* Wizard step container (used by GSAP) */
+.wizard-step {
+  width: 100%;
 }

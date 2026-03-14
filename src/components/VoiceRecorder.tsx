@@ -51,7 +51,7 @@ export default function VoiceRecorder({ onRecordingComplete }: VoiceRecorderProp
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
+      <label className="block text-sm font-medium text-white/70">
         Voice Recording (optional)
       </label>
       <button
@@ -61,12 +61,12 @@ export default function VoiceRecorder({ onRecordingComplete }: VoiceRecorderProp
         onMouseLeave={stopRecording}
         onTouchStart={startRecording}
         onTouchEnd={stopRecording}
-        className={`w-full py-4 px-6 rounded-lg border-2 border-dashed text-center cursor-pointer transition-colors ${
+        className={`w-full py-4 px-6 rounded-xl border-2 border-dashed text-center cursor-pointer transition-all duration-200 ${
           isRecording
-            ? 'border-red-500 bg-red-50 text-red-700'
+            ? 'border-red-500 bg-red-500/15 text-red-300'
             : hasRecording
-              ? 'border-green-500 bg-green-50 text-green-700'
-              : 'border-gray-300 bg-gray-50 text-gray-600 hover:border-blue-400'
+              ? 'border-green-500 bg-green-500/15 text-green-300'
+              : 'border-white/20 bg-white/5 text-white/60 hover:border-orange-400/50 hover:bg-orange-400/5'
         }`}
         aria-label={isRecording ? 'Release to stop recording' : 'Hold to record voice note'}
       >

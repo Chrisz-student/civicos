@@ -51,7 +51,7 @@ export default function FileDropZone({ onFileSelected }: FileDropZoneProps) {
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
+      <label className="block text-sm font-medium text-white/70">
         Photo (optional — jpg or png, max 10MB)
       </label>
 
@@ -63,12 +63,12 @@ export default function FileDropZone({ onFileSelected }: FileDropZoneProps) {
         }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
-        className={`w-full py-8 px-6 rounded-lg border-2 border-dashed text-center cursor-pointer transition-colors ${
+        className={`w-full py-8 px-6 rounded-xl border-2 border-dashed text-center cursor-pointer transition-all duration-200 ${
           isDragging
-            ? 'border-blue-500 bg-blue-50'
+            ? 'border-orange-400 bg-orange-400/10'
             : preview
-              ? 'border-green-500 bg-green-50'
-              : 'border-gray-300 bg-gray-50 hover:border-blue-400'
+              ? 'border-green-500 bg-green-500/15'
+              : 'border-white/20 bg-white/5 hover:border-orange-400/50 hover:bg-orange-400/5'
         }`}
       >
         {preview ? (
@@ -78,10 +78,10 @@ export default function FileDropZone({ onFileSelected }: FileDropZoneProps) {
               alt="Preview"
               className="max-h-32 mx-auto rounded"
             />
-            <p className="text-sm text-green-700">✅ {fileName}</p>
+            <p className="text-sm text-green-300">✅ {fileName}</p>
           </div>
         ) : (
-          <p className="text-gray-500">
+          <p className="text-white/50">
             📷 Drag & drop an image here, or click to browse
           </p>
         )}
@@ -95,7 +95,7 @@ export default function FileDropZone({ onFileSelected }: FileDropZoneProps) {
         onChange={handleChange}
       />
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-400">{error}</p>}
     </div>
   );
 }
