@@ -109,18 +109,30 @@ export default function StatusTracker() {
                 AI Classification
               </h2>
 
+<<<<<<< HEAD
               {(record.ai_analysis as any).error && (
                 <div className="rounded-xl p-3" style={{ background: 'rgba(234,179,8,0.15)', border: '1px solid rgba(234,179,8,0.3)' }}>
                   <p className="text-sm text-yellow-300">⚠️ AI processing encountered an issue. It may retry automatically.</p>
                 </div>
               )}
 
+=======
+              {/* Show error if AI processing failed */}
+              {(record.ai_analysis as any).error && (
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700 text-sm">
+                  ⚠️ AI processing encountered an issue. It may retry automatically.
+                </div>
+              )}
+
+              {/* Summary */}
+>>>>>>> main
               {record.ai_analysis.summary && (
                 <p className="text-sm text-white/60 italic">
                   "{record.ai_analysis.summary}"
                 </p>
               )}
 
+<<<<<<< HEAD
               {record.ai_analysis.category && (
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
@@ -143,14 +155,44 @@ export default function StatusTracker() {
                     <div>
                       <p className="text-white/40">Confidence</p>
                       <p className="font-medium text-white/90">
+=======
+              {/* Only show classification grid if we have real data */}
+              {record.ai_analysis.category && (
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-gray-500">Category</p>
+                    <p className="font-medium">{record.ai_analysis.category}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Subcategory</p>
+                    <p className="font-medium">{record.ai_analysis.subcategory}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Risk Level</p>
+                    <p className="font-medium capitalize">{record.ai_analysis.risk_level}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Report Type</p>
+                    <p className="font-medium capitalize">{record.ai_analysis.report_type}</p>
+                  </div>
+                  {record.ai_analysis.confidence != null && (
+                    <div>
+                      <p className="text-gray-500">Confidence</p>
+                      <p className="font-medium">
+>>>>>>> main
                         {(record.ai_analysis.confidence * 100).toFixed(0)}%
                       </p>
                     </div>
                   )}
                   {record.ai_analysis.severity != null && (
                     <div>
+<<<<<<< HEAD
                       <p className="text-white/40">Severity Score</p>
                       <p className="font-medium text-white/90">
+=======
+                      <p className="text-gray-500">Severity Score</p>
+                      <p className="font-medium">
+>>>>>>> main
                         {record.ai_analysis.severity.toFixed(2)}
                       </p>
                     </div>
@@ -183,9 +225,15 @@ export default function StatusTracker() {
               <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wide">
                 Sent To
               </h2>
+<<<<<<< HEAD
               <p className="text-sm font-medium text-orange-400">{(record.routing as any).authority || (record.routing as any).department || 'N/A'}</p>
               {(record.routing as any).email && (
                 <p className="text-sm text-white/40">{(record.routing as any).email}</p>
+=======
+              <p className="text-sm font-medium">{(record.routing as any).authority || (record.routing as any).department || 'N/A'}</p>
+              {(record.routing as any).email && (
+                <p className="text-sm text-gray-500">{(record.routing as any).email}</p>
+>>>>>>> main
               )}
             </div>
           )}
@@ -204,7 +252,11 @@ export default function StatusTracker() {
                   {(record.email as any).cc_citizen || (record.email as any).citizen_cc_sent ? '✅' : '⬜'} You were CC'd
                 </p>
                 {(record.email as any).sent_at && (
+<<<<<<< HEAD
                   <p className="text-xs text-white/30">
+=======
+                  <p className="text-xs text-gray-400">
+>>>>>>> main
                     Sent at {new Date((record.email as any).sent_at).toLocaleString()}
                   </p>
                 )}
@@ -217,7 +269,11 @@ export default function StatusTracker() {
             <button
               onClick={() => fetchStatus(true)}
               disabled={refreshing}
+<<<<<<< HEAD
               className="btn-ghost flex-1 text-sm"
+=======
+              className="flex-1 py-2 px-4 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors text-sm"
+>>>>>>> main
             >
               {refreshing ? '⏳ Refreshing...' : '🔄 Refresh Status'}
             </button>

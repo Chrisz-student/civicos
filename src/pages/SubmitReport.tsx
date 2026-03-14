@@ -4,9 +4,14 @@
 // GSAP slide-in from right on each step
 // ============================================
 
+<<<<<<< HEAD
 import { useState, useRef, useLayoutEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
+=======
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+>>>>>>> main
 import VoiceRecorder from '../components/VoiceRecorder';
 import FileDropZone from '../components/FileDropZone';
 import LocationPicker from '../components/LocationPicker';
@@ -18,11 +23,15 @@ const TOTAL_STEPS = 4;
 export default function SubmitReport() {
   const navigate = useNavigate();
 
+<<<<<<< HEAD
   // ---- Wizard state ----
   const [step, setStep] = useState(1);
   const stepRef = useRef<HTMLDivElement>(null);
 
   // ---- Form state ----
+=======
+  // Form state
+>>>>>>> main
   const [textContent, setTextContent] = useState('');
   const [location, setLocation] = useState('');
   const [gps, setGps] = useState<GPS | null>(null);
@@ -35,6 +44,7 @@ export default function SubmitReport() {
   const [incidentId, setIncidentId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+<<<<<<< HEAD
   // ---- Status lookup ----
   const [lookupId, setLookupId] = useState('');
 
@@ -90,6 +100,12 @@ export default function SubmitReport() {
   };
 
   // ---- Input type helper ----
+=======
+  // Status lookup state
+  const [lookupId, setLookupId] = useState('');
+
+  // Figure out the input type to send
+>>>>>>> main
   const getInputType = (): 'voice' | 'image' | 'text' => {
     if (voiceBlob) return 'voice';
     if (imageFile) return 'image';
@@ -122,18 +138,34 @@ export default function SubmitReport() {
         citizen_email: email,
         input_type: getInputType(),
       };
+<<<<<<< HEAD
       if (gps) payload.gps = gps;
 
       // Tell Lambda the actual content type so presigned URL matches
       if (voiceBlob) {
         payload.content_type = 'audio/webm';
         if (imageFile) payload.image_content_type = imageFile.type;
+=======
+      // Only include GPS if we have real coordinates
+      if (gps) {
+        payload.gps = gps;
+      }
+      // Tell the Lambda the actual file content type so the presigned URL matches.
+      // Priority: voice > image (must match getInputType() order above)
+      if (voiceBlob) {
+        payload.content_type = 'audio/webm';
+        // If user also attached an image, send its type so Lambda generates a second URL
+        if (imageFile) {
+          payload.image_content_type = imageFile.type;
+        }
+>>>>>>> main
       } else if (imageFile) {
         payload.content_type = imageFile.type;
       }
 
       const result = await submitReport(payload as any);
 
+<<<<<<< HEAD
       // Upload files to S3
       if (voiceBlob) {
         await uploadFileToS3(result.upload_url, voiceBlob, 'audio/webm');
@@ -141,15 +173,35 @@ export default function SubmitReport() {
       if (imageFile) {
         const imageUrl = (result as any).image_upload_url || (voiceBlob ? '' : result.upload_url);
         if (imageUrl) await uploadFileToS3(imageUrl, imageFile, imageFile.type);
+=======
+      // Step 2: Upload files to S3
+      if (voiceBlob) {
+        await uploadFileToS3(result.upload_url, voiceBlob, 'audio/webm');
+      }
+      // Upload image separately if we have one (works whether or not voice was also recorded)
+      if (imageFile) {
+        const imageUrl = result.image_upload_url || (voiceBlob ? '' : result.upload_url);
+        if (imageUrl) {
+          await uploadFileToS3(imageUrl, imageFile, imageFile.type);
+        }
+>>>>>>> main
       }
 
       setIncidentId(result.incident_id);
     } catch (err: any) {
       console.error('Submit error:', err);
+<<<<<<< HEAD
       const detail =
         err?.response?.data?.error ||
         err?.response?.data ||
         err?.message ||
+=======
+      // Show the real error so we can debug it
+      const detail =
+        err?.response?.data?.error ||   // API Gateway / Lambda error body
+        err?.response?.data ||           // raw response body
+        err?.message ||                  // JS error message
+>>>>>>> main
         String(err);
       setError(`Error: ${detail}`);
     } finally {
@@ -331,6 +383,7 @@ export default function SubmitReport() {
           <button type="button" onClick={goBack} className="btn-ghost flex-1">
             ← Back
           </button>
+<<<<<<< HEAD
         )}
         {step < TOTAL_STEPS ? (
           <button type="button" onClick={goNext} className="btn-cone flex-1 py-3 text-lg">
@@ -367,6 +420,35 @@ export default function SubmitReport() {
           >
             Check Status
           </button>
+=======
+        </form>
+
+        {/* Check existing report */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">
+            Already submitted a report?
+          </h2>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={lookupId}
+              onChange={(e) => setLookupId(e.target.value.toUpperCase())}
+              placeholder="Enter Incident ID (e.g. CIV-2026-35195)"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-mono"
+            />
+            <button
+              onClick={() => {
+                if (lookupId.trim()) {
+                  navigate(`/status/${lookupId.trim()}`);
+                }
+              }}
+              disabled={!lookupId.trim()}
+              className="px-5 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm font-medium whitespace-nowrap"
+            >
+              Check Status
+            </button>
+          </div>
+>>>>>>> main
         </div>
       </div>
     </div>

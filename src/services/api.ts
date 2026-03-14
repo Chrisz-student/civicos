@@ -86,6 +86,7 @@ export async function uploadFileToS3(
     return;
   }
 
+  // Content-Type header MUST match exactly what the presigned URL was signed with
   await axios.put(presignedUrl, file, {
     headers: { 'Content-Type': contentType },
   });
