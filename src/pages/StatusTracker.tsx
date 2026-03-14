@@ -109,13 +109,6 @@ export default function StatusTracker() {
                 AI Classification
               </h2>
 
-              {/* Show error if AI processing failed */}
-              {(record.ai_analysis as any).error && (
-                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700 text-sm">
-                  ⚠️ AI processing encountered an issue. It may retry automatically.
-                </div>
-              )}
-
               {/* Summary */}
               {record.ai_analysis.summary && (
                 <p className="text-sm text-white/60 italic">
@@ -123,43 +116,36 @@ export default function StatusTracker() {
                 </p>
               )}
 
-              {/* Only show classification grid if we have real data */}
-              {record.ai_analysis.category && (
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <p className="text-gray-500">Category</p>
-                    <p className="font-medium">{record.ai_analysis.category}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Subcategory</p>
-                    <p className="font-medium">{record.ai_analysis.subcategory}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Risk Level</p>
-                    <p className="font-medium capitalize">{record.ai_analysis.risk_level}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Report Type</p>
-                    <p className="font-medium capitalize">{record.ai_analysis.report_type}</p>
-                  </div>
-                  {record.ai_analysis.confidence != null && (
-                    <div>
-                      <p className="text-gray-500">Confidence</p>
-                      <p className="font-medium">
-                        {(record.ai_analysis.confidence * 100).toFixed(0)}%
-                      </p>
-                    </div>
-                  )}
-                  {record.ai_analysis.severity != null && (
-                    <div>
-                      <p className="text-gray-500">Severity Score</p>
-                      <p className="font-medium">
-                        {record.ai_analysis.severity.toFixed(2)}
-                      </p>
-                    </div>
-                  )}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-gray-500">Category</p>
+                  <p className="font-medium">{record.ai_analysis.category}</p>
                 </div>
-              )}
+                <div>
+                  <p className="text-gray-500">Subcategory</p>
+                  <p className="font-medium">{record.ai_analysis.subcategory}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Risk Level</p>
+                  <p className="font-medium capitalize">{record.ai_analysis.risk_level}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Report Type</p>
+                  <p className="font-medium capitalize">{record.ai_analysis.report_type}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Confidence</p>
+                  <p className="font-medium">
+                    {(record.ai_analysis.confidence * 100).toFixed(0)}%
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Severity Score</p>
+                  <p className="font-medium">
+                    {record.ai_analysis.severity.toFixed(2)}
+                  </p>
+                </div>
+              </div>
 
               {record.ai_analysis.location_extracted && (
                 <div>

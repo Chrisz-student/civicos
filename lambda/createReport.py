@@ -125,10 +125,6 @@ def lambda_handler(event, context):
                 'incident_id': incident_id,
                 'input_type': input_type,
                 'text_content': text_content,
-                's3_bucket': UPLOAD_BUCKET,
-                's3_key': s3_key,
-                'location': location,
-                'citizen_email': citizen_email,
             }),
         )
         
