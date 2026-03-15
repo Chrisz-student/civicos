@@ -137,24 +137,32 @@ def classify_with_nova(text_content, input_type='text', provided_location=None,
     
     messages_content = []
     
+    print(f"[DEBUG] classify_with_nova called | input_type={input_type} | provided_location={provided_location} | has_image={image_base64 is not None} | image_media_type={image_media_type}")
+
     # Build the correct prompt based on input type
     if input_type == 'image':
         # Inject the user-supplied location into the image prompt
         location_str = provided_location or 'not specified'
         prompt_prefix = CLASSIFICATION_PROMPT_IMAGE.replace('{location}', location_str)
-        caption = text_content or 'No caption provided.'
+        caption = text_content or '(no caption)'
+
+        print(f"[DEBUG] IMAGE prompt location_str='{location_str}' | caption='{caption}'")
+        print(f"[DEBUG] Full prompt sent to Nova:\n{prompt_prefix + caption}")
 
         # Add the image bytes first (Nova expects image before text in multimodal)
         if image_base64:
+            img_format = image_media_type.split('/')[-1]  # e.g. "jpeg"
+            print(f"[DEBUG] Adding image to message | format={img_format} | b64_len={len(image_base64)}")
             messages_content.append({
                 "image": {
-                    "format": image_media_type.split('/')[-1],  # e.g. "jpeg"
+                    "format": img_format,
                     "source": {
-                        # Nova accepts base64-encoded string inside the JSON body
                         "bytes": image_base64
                     }
                 }
             })
+        else:
+            print("[DEBUG] WARNING: no image_base64 provided — Nova will only see the text prompt!")
         messages_content.append({"text": prompt_prefix + caption})
 
     else:
@@ -181,6 +189,7 @@ def classify_with_nova(text_content, input_type='text', provided_location=None,
     
     result = json.loads(response['body'].read())
     raw_text = result['output']['message']['content'][0]['text']
+    print(f"[DEBUG] Raw Nova response:\n{raw_text}")
     
     # Strip any accidental markdown fences before parsing
     clean = raw_text.strip()
@@ -190,6 +199,7 @@ def classify_with_nova(text_content, input_type='text', provided_location=None,
             clean = clean[4:]
     
     ai_result = json.loads(clean.strip())
+    print(f"[DEBUG] Parsed ai_result: {json.dumps(ai_result)}")
 
     # --- Post-process image results: always override location_extracted
     # with the user-supplied value so AI cannot override it ---
@@ -288,14 +298,32 @@ def lambda_handler(event, context):
             caption = event.get('text_content', '')
             provided_location = event.get('location', '')
 
-            # Fetch the image bytes from S3 and encode as base64 string for Nova
+            print(f"[DEBUG] IMAGE input | location='{provided_location}' | s3_bucket={event['s3_bucket']} | s3_key={event['s3_key']}")
+
+            # Fetch the image bytes from S3 and encode as base64 string for Nova.
+            # Retry up to 10x with 3s delay — createReport fires this Lambda async
+            # BEFORE the frontend has finished uploading the file, so the object
+            # may not exist in S3 yet.
+            import time
             s3_client = boto3.client('s3', region_name='ap-southeast-2')
-            s3_obj = s3_client.get_object(
-                Bucket=event['s3_bucket'],
-                Key=event['s3_key'],
-            )
-            image_bytes = s3_obj['Body'].read()
+            image_bytes = None
+            for attempt in range(10):
+                try:
+                    s3_obj = s3_client.get_object(
+                        Bucket=event['s3_bucket'],
+                        Key=event['s3_key'],
+                    )
+                    image_bytes = s3_obj['Body'].read()
+                    print(f"[DEBUG] S3 fetch succeeded on attempt {attempt + 1} | size={len(image_bytes)} bytes")
+                    break
+                except s3_client.exceptions.NoSuchKey:
+                    print(f"[DEBUG] S3 object not yet available (attempt {attempt + 1}/10) — waiting 3s")
+                    time.sleep(3)
+            if image_bytes is None:
+                raise Exception(f"Image not found in S3 after 10 attempts: s3://{event['s3_bucket']}/{event['s3_key']}")
+
             image_b64 = base64.b64encode(image_bytes).decode('utf-8')
+            print(f"[DEBUG] image_b64 length={len(image_b64)} chars")
 
             # Infer media type from S3 key extension
             s3_key = event['s3_key']
