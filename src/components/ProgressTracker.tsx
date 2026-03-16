@@ -1,5 +1,5 @@
 ﻿// ============================================
-// ProgressTracker â€” Shows the 5-step pipeline
+// ProgressTracker — Shows the 5-step pipeline
 // Dark theme variant
 // ============================================
 
@@ -39,30 +39,30 @@ export default function ProgressTracker({ currentStatus }: ProgressTrackerProps)
         const isFailed = currentStatus === 'processing_failed' && i === 1;
         const isNeedsLocation = currentStatus === 'needs_location' && i === 1;
 
-        let icon = 'â¬œ';
+        let icon = '⬜';
         let textColor = 'text-white/30';
         let label = step.label;
 
         if (isFailed) {
-          icon = 'âŒ';
+          icon = '❌';
           textColor = 'text-red-400';
-          label = 'AI Classification â€” Processing failed';
+          label = 'AI Classification — Processing failed';
         } else if (isUnsupported) {
-          icon = 'âš ï¸';
+          icon = '⚠️';
           textColor = 'text-yellow-400';
-          label = 'AI Classification â€” Unsupported issue type';
+          label = 'AI Classification — Unsupported issue type';
         } else if (isNeedsLocation) {
-          icon = 'ðŸ“';
+          icon = '📍';
           textColor = 'text-orange-400';
-          label = 'AI Classification â€” Location not specific enough';
+          label = 'AI Classification — Location not specific enough';
         } else if (isCompleted) {
-          icon = 'âœ…';
+          icon = '✅';
           textColor = 'text-green-400';
         } else if (isCurrent) {
-          icon = 'ðŸ”„';
+          icon = '🔄';
           textColor = 'text-orange-400 font-semibold';
         } else if (isPending) {
-          icon = 'â¬œ';
+          icon = '⬜';
           textColor = 'text-white/30';
         }
 

@@ -148,7 +148,7 @@ const [imageLocation, setImageLocation] = useState('');    // type=image — sep
     try {
       const payload: Record<string, unknown> = {
         citizen_email: email,
-        input_type: inputType,
+        input_type: inputType === 'audio' ? 'voice' : inputType,
       };
 
       if (inputType === 'image') {
@@ -506,7 +506,7 @@ const [imageLocation, setImageLocation] = useState('');    // type=image — sep
       {step > 1 && (
         <div className="max-w-lg w-full mt-6 flex gap-3">
           <button type="button" onClick={goBack} className="btn-ghost flex-1">
-            â† Back
+            ← Back
           </button>
           {step < TOTAL_STEPS ? (
             <button type="button" onClick={goNext} className="btn-cone flex-1 py-3 text-lg">

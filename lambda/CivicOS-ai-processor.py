@@ -212,15 +212,31 @@ def classify_with_nova(text_content, input_type='text', provided_location=None,
 def transcribe_audio(s3_bucket, s3_key, incident_id):
     """Use Amazon Transcribe to convert voice to text."""
     transcribe = boto3.client('transcribe', region_name='ap-southeast-2')
+    s3_client = boto3.client('s3', region_name='ap-southeast-2')
+    
+    # Wait for the audio file to appear in S3 — the Lambda is invoked async
+    # before the frontend has finished uploading the file.
+    import time
+    for attempt in range(10):
+        try:
+            s3_client.head_object(Bucket=s3_bucket, Key=s3_key)
+            print(f"[DEBUG] Voice S3 object found on attempt {attempt + 1}")
+            break
+        except s3_client.exceptions.ClientError:
+            print(f"[DEBUG] Voice S3 object not yet available (attempt {attempt + 1}/10) — waiting 3s")
+            time.sleep(3)
+    else:
+        raise Exception(f"Voice file not found in S3 after 10 attempts: s3://{s3_bucket}/{s3_key}")
     
     job_name = f"civicos-{incident_id}-{int(datetime.now().timestamp())}"
     
     transcribe.start_transcription_job(
         TranscriptionJobName=job_name,
         Media={'MediaFileUri': f's3://{s3_bucket}/{s3_key}'},
-        MediaFormat='ogg',  # webm with opus is treated as ogg by Transcribe
+        MediaFormat='webm',
         LanguageCode='en-NZ'
     )
+    print(f"[DEBUG] Started Transcribe job: {job_name}")
     
     # Wait for job to complete (poll every 5 seconds)
     import time
@@ -288,6 +304,7 @@ def lambda_handler(event, context):
         # --- VOICE: transcribe first, then classify ---
         if input_type == 'voice':
             transcript = transcribe_audio(event['s3_bucket'], event['s3_key'], incident_id)
+            print(f"[DEBUG] Transcript result: '{transcript}'")
             ai_result = classify_with_nova(
                 text_content=transcript,
                 input_type='voice',
