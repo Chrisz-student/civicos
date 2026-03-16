@@ -33,6 +33,8 @@ to word a complaint. CivicOS fixes that. Describe what you see, and our AI:
 git clone https://github.com/Chrisz-student/civicos
 cd civicos
 npm install
+cp .env.example .env
+# Edit .env and add your API Gateway URL
 npm run dev
 ```
 
