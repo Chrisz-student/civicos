@@ -1,5 +1,5 @@
 ﻿// ============================================
-// Screen 1 â€” Submit a Report (Multi-step wizard)
+// Screen 1 — Submit a Report (Multi-step wizard)
 // Steps:
 //   1) Choose input type (Image / Text / Audio)
 //   2) Provide content   (conditional on type)
@@ -33,7 +33,7 @@ export default function SubmitReport() {
   // ---- Content state (only the relevant field is used per type) ----
   const [textContent, setTextContent] = useState('');        // type=text
   const [imageFile, setImageFile] = useState<File | null>(null);   // type=image
-  const [imageLocation, setImageLocation] = useState('');    // type=image â€” separate location field
+const [imageLocation, setImageLocation] = useState('');    // type=image — separate location field
   const [voiceBlob, setVoiceBlob] = useState<Blob | null>(null);   // type=audio
   const [gps, setGps] = useState<GPS | null>(null);
 
@@ -156,10 +156,10 @@ export default function SubmitReport() {
         payload.location = imageLocation;
         payload.content_type = imageFile!.type;
       } else if (inputType === 'text') {
-        // No location field â€” AI extracts it from the text
+// No location field — AI extracts it from the text
         payload.text_content = textContent;
       } else if (inputType === 'audio') {
-        // No location field â€” AI extracts it from the transcript
+        // No location field — AI extracts it from the transcript
         payload.content_type = 'audio/webm';
       }
 
@@ -195,7 +195,7 @@ export default function SubmitReport() {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="glass-card-orange p-8 max-w-md w-full text-center space-y-5">
-          <div className="text-5xl">âœ…</div>
+          <div className="text-5xl">✅</div>
           <h1 className="text-2xl font-bold text-white">Report Submitted!</h1>
           <p className="text-white/70">Your incident ID is:</p>
           <p className="text-2xl font-mono font-bold text-orange-400">{incidentId}</p>
@@ -206,7 +206,7 @@ export default function SubmitReport() {
             to={`/status/${incidentId}`}
             className="btn-cone inline-block mt-4 px-8 py-3 text-center"
           >
-            Track Report Status â†’
+            Track Report Status →
           </Link>
         </div>
       </div>
@@ -251,7 +251,7 @@ export default function SubmitReport() {
           {step === 1 && (
             <div className="glass-card-orange p-6 space-y-5">
               <div className="text-center">
-                <span className="text-3xl">ðŸ“‹</span>
+                <span className="text-3xl">📋</span>
                 <h2 className="text-xl font-bold text-white mt-2">How would you like to report?</h2>
                 <p className="text-sm text-white/50 mt-1">Choose the type of evidence you have</p>
               </div>
@@ -267,11 +267,11 @@ export default function SubmitReport() {
                     border: '1px solid rgba(255,255,255,0.15)',
                   }}
                 >
-                  <span className="text-3xl">ðŸ“¸</span>
+                  <span className="text-3xl">📸</span>
                   <div>
                     <p className="font-semibold text-white">Photo</p>
                     <p className="text-xs text-white/50 mt-0.5">
-                      Upload an image â€” AI analyses the issue from the photo. You'll supply the location separately.
+                      Upload an image — AI analyses the issue from the photo. You'll supply the location separately.
                     </p>
                   </div>
                 </button>
@@ -286,11 +286,11 @@ export default function SubmitReport() {
                     border: '1px solid rgba(255,255,255,0.15)',
                   }}
                 >
-                  <span className="text-3xl">ðŸ“</span>
+                  <span className="text-3xl">📝</span>
                   <div>
                     <p className="font-semibold text-white">Text</p>
                     <p className="text-xs text-white/50 mt-0.5">
-                      Describe the issue in writing â€” AI will extract the location and classify it automatically.
+                      Describe the issue in writing — AI will extract the location and classify it automatically.
                     </p>
                   </div>
                 </button>
@@ -305,11 +305,11 @@ export default function SubmitReport() {
                     border: '1px solid rgba(255,255,255,0.15)',
                   }}
                 >
-                  <span className="text-3xl">ðŸŽ¤</span>
+                  <span className="text-3xl">🎤</span>
                   <div>
                     <p className="font-semibold text-white">Voice Recording</p>
                     <p className="text-xs text-white/50 mt-0.5">
-                      Record a voice message â€” AI transcribes it and extracts the location automatically.
+                      Record a voice message — AI transcribes it and extracts the location automatically.
                     </p>
                   </div>
                 </button>
@@ -321,7 +321,7 @@ export default function SubmitReport() {
           {step === 2 && inputType === 'image' && (
             <div className="glass-card-orange p-6 space-y-5">
               <div className="text-center">
-                <span className="text-3xl">ðŸ“¸</span>
+                <span className="text-3xl">📸</span>
                 <h2 className="text-xl font-bold text-white mt-2">Upload Your Photo</h2>
                 <p className="text-sm text-white/50 mt-1">AI will analyse the image and classify the issue</p>
               </div>
@@ -330,7 +330,7 @@ export default function SubmitReport() {
 
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-white/70">
-                  ðŸ“ Where is the issue?
+                  📍 Where is the issue?
                 </label>
                 <input
                   type="text"
@@ -349,7 +349,7 @@ export default function SubmitReport() {
           {step === 2 && inputType === 'text' && (
             <div className="glass-card-orange p-6 space-y-5">
               <div className="text-center">
-                <span className="text-3xl">ðŸ“</span>
+                <span className="text-3xl">📝</span>
                 <h2 className="text-xl font-bold text-white mt-2">Describe the Issue</h2>
                 <p className="text-sm text-white/50 mt-1">AI will extract the location and classify the report</p>
               </div>
@@ -366,7 +366,7 @@ export default function SubmitReport() {
                 className="rounded-xl p-3 text-xs"
                 style={{ background: 'rgba(249,115,22,0.12)', border: '1px solid rgba(249,115,22,0.3)' }}
               >
-                <p className="text-orange-300 font-semibold">ðŸ“ Location tip</p>
+<p className="text-orange-300 font-semibold">📍 Location tip</p>
                 <p className="text-orange-200/70 mt-1">
                   Include a specific Auckland street name, address, or well-known landmark (e.g. "in front of Sky Tower", "corner of Ponsonby Road and Franklin Road"). Vague references like "the road near me" cannot be processed.
                 </p>
@@ -374,7 +374,7 @@ export default function SubmitReport() {
 
               {/* Emergency warning */}
               <div className="rounded-xl p-4" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)' }}>
-                <p className="text-sm text-red-300 font-semibold">ðŸš¨ Is this an emergency?</p>
+                <p className="text-sm text-red-300 font-semibold">🚨 Is this an emergency?</p>
                 <p className="text-xs text-red-200/70 mt-1">
                   If someone is in immediate danger, do not use this form. Call{' '}
                   <span className="font-bold text-red-300">111</span> immediately.
@@ -386,9 +386,9 @@ export default function SubmitReport() {
           {step === 2 && inputType === 'audio' && (
             <div className="glass-card-orange p-6 space-y-5">
               <div className="text-center">
-                <span className="text-3xl">ðŸŽ¤</span>
+                <span className="text-3xl">🎤</span>
                 <h2 className="text-xl font-bold text-white mt-2">Record Your Report</h2>
-                <p className="text-sm text-white/50 mt-1">Speak naturally â€” AI will transcribe and classify it</p>
+                <p className="text-sm text-white/50 mt-1">Speak naturally — AI will transcribe and classify it</p>
               </div>
 
               <VoiceRecorder onRecordingComplete={setVoiceBlob} />
@@ -397,7 +397,7 @@ export default function SubmitReport() {
                 className="rounded-xl p-3 text-xs"
                 style={{ background: 'rgba(249,115,22,0.12)', border: '1px solid rgba(249,115,22,0.3)' }}
               >
-                <p className="text-orange-300 font-semibold">ðŸ“ Location tip</p>
+<p className="text-orange-300 font-semibold">📍 Location tip</p>
                 <p className="text-orange-200/70 mt-1">
                   Make sure to say a specific Auckland street name or landmark (e.g. "outside the Countdown on Queen Street"). Vague directions cannot be processed.
                 </p>
@@ -405,7 +405,7 @@ export default function SubmitReport() {
 
               {/* Emergency warning */}
               <div className="rounded-xl p-4" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)' }}>
-                <p className="text-sm text-red-300 font-semibold">ðŸš¨ Is this an emergency?</p>
+                <p className="text-sm text-red-300 font-semibold">🚨 Is this an emergency?</p>
                 <p className="text-xs text-red-200/70 mt-1">
                   If someone is in immediate danger, do not use this form. Call{' '}
                   <span className="font-bold text-red-300">111</span> immediately.
@@ -418,7 +418,7 @@ export default function SubmitReport() {
           {step === 3 && (
             <div className="glass-card-orange p-6 space-y-5">
               <div className="text-center">
-                <span className="text-3xl">âœ‰ï¸</span>
+                <span className="text-3xl">✉️</span>
                 <h2 className="text-xl font-bold text-white mt-2">Your Email</h2>
                 <p className="text-sm text-white/50 mt-1">We'll send you updates and CC you on the council email</p>
               </div>
@@ -443,7 +443,7 @@ export default function SubmitReport() {
           {step === 4 && (
             <div className="glass-card-orange p-6 space-y-5">
               <div className="text-center">
-                <span className="text-3xl">ðŸš€</span>
+                <span className="text-3xl">🚀</span>
                 <h2 className="text-xl font-bold text-white mt-2">Review & Submit</h2>
                 <p className="text-sm text-white/50 mt-1">Check your report before sending</p>
               </div>
@@ -455,24 +455,24 @@ export default function SubmitReport() {
                 <p className="text-xs font-semibold text-white/60 uppercase tracking-wide">Summary</p>
                 <div className="text-sm text-white/80 space-y-1">
                   <p>
-                    ðŸ“‹ <span className="text-white/50">Type:</span>{' '}
-                    {inputType === 'image' ? 'ðŸ“¸ Photo' : inputType === 'text' ? 'ðŸ“ Text' : 'ðŸŽ¤ Audio'}
+                    📋 <span className="text-white/50">Type:</span>{' '}
+                    {inputType === 'image' ? '📸 Photo' : inputType === 'text' ? '📝 Text' : '🎤 Audio'}
                   </p>
                   {inputType === 'image' && (
                     <>
-                      <p>ðŸ“ <span className="text-white/50">Location:</span> {imageLocation || <span className="italic text-white/30">not set</span>}</p>
-                      <p>ðŸ“¸ <span className="text-white/50">Photo:</span> {imageFile ? imageFile.name : <span className="italic text-white/30">none</span>}</p>
+                      <p>📍 <span className="text-white/50">Location:</span> {imageLocation || <span className="italic text-white/30">not set</span>}</p>
+                      <p>📸 <span className="text-white/50">Photo:</span> {imageFile ? imageFile.name : <span className="italic text-white/30">none</span>}</p>
                     </>
                   )}
                   {inputType === 'text' && (
-                    <p>ðŸ“ <span className="text-white/50">Description:</span>{' '}
-                      {textContent ? textContent.slice(0, 80) + (textContent.length > 80 ? 'â€¦' : '') : <span className="italic text-white/30">none</span>}
+                    <p>📝 <span className="text-white/50">Description:</span>{' '}
+                      {textContent ? textContent.slice(0, 80) + (textContent.length > 80 ? '…' : '') : <span className="italic text-white/30">none</span>}
                     </p>
                   )}
                   {inputType === 'audio' && (
-                    <p>ðŸŽ¤ <span className="text-white/50">Voice:</span> {voiceBlob ? 'Recorded âœ…' : <span className="italic text-white/30">none</span>}</p>
+                    <p>🎤 <span className="text-white/50">Voice:</span> {voiceBlob ? 'Recorded ✅' : <span className="italic text-white/30">none</span>}</p>
                   )}
-                  <p>âœ‰ï¸ <span className="text-white/50">Email:</span> {email}</p>
+                  <p>✉️ <span className="text-white/50">Email:</span> {email}</p>
                 </div>
               </div>
 
@@ -482,7 +482,7 @@ export default function SubmitReport() {
                   style={{ background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.25)' }}
                 >
                   <p className="text-orange-300/80">
-                    â„¹ï¸ AI will extract the location from your {inputType === 'audio' ? 'voice recording' : 'description'}. If no recognisable Auckland location is found, you'll be asked to re-submit.
+                  ℹ️ AI will extract the location from your {inputType === 'audio' ? 'voice recording' : 'description'}. If no recognisable Auckland location is found, you'll be asked to re-submit.
                   </p>
                 </div>
               )}
@@ -502,7 +502,7 @@ export default function SubmitReport() {
         </div>
       )}
 
-      {/* Navigation buttons â€” hidden on step 1 (type cards auto-advance) */}
+      {/* Navigation buttons — hidden on step 1 (type cards auto-advance) */}
       {step > 1 && (
         <div className="max-w-lg w-full mt-6 flex gap-3">
           <button type="button" onClick={goBack} className="btn-ghost flex-1">
@@ -510,7 +510,7 @@ export default function SubmitReport() {
           </button>
           {step < TOTAL_STEPS ? (
             <button type="button" onClick={goNext} className="btn-cone flex-1 py-3 text-lg">
-              Next â†’
+              Next →
             </button>
           ) : (
             <button
@@ -519,7 +519,7 @@ export default function SubmitReport() {
               disabled={submitting}
               className="btn-cone flex-1 py-3 text-lg"
             >
-              {submitting ? 'â³ Submitting...' : 'ðŸš€ Submit Report'}
+              {submitting ? '⏳ Submitting...' : '🚀 Submit Report'}
             </button>
           )}
         </div>
