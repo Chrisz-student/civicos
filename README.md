@@ -29,11 +29,12 @@ to word a complaint. CivicOS fixes that. Describe what you see, and our AI:
 - AWS account with SES, Lambda, S3, and DynamoDB configured
 
 ### Installation
-
+```bash
 git clone https://github.com/Chrisz-student/civicos
 cd civicos
 npm install
 npm run dev
+```
 
 ### Note on AWS SES
 AWS SES starts in sandbox mode, which limits outbound email to pre-verified
