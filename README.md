@@ -1,54 +1,41 @@
-# React + TypeScript + Vite
+# CivicOS
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Report local issues in seconds. CivicOS turns a photo, voice note, or text into a
+formally worded complaint — complete with NZ legislation — routed to the right
+council department automatically.
 
-Currently, two official plugins are available:
+## What it does
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Most people don't report civic issues because they don't know who to contact or how
+to word a complaint. CivicOS fixes that. Describe what you see, and our AI:
 
-## Expanding the ESLint configuration
+- Classifies the issue into a category
+- Attaches the relevant NZ legislation (Resource Management Act, Local Government
+  Act, Building Act, etc.)
+- Routes it to the correct council department
+- Sends a professionally worded email on your behalf
+- CC's you automatically so you have a paper trail
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Tech Stack
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+- **Frontend:** React + TypeScript + Vite
+- **Cloud:** AWS (S3, Lambda, DynamoDB, SES)
+- **AI:** Amazon Nova (classification), Amazon Transcribe (voice)
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Getting Started
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Prerequisites
+- Node.js
+- AWS account with SES, Lambda, S3, and DynamoDB configured
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+### Installation
+
+git clone https://github.com/Chrisz-student/civicos
+cd civicos
+npm install
+npm run dev
+
+### Note on AWS SES
+AWS SES starts in sandbox mode, which limits outbound email to pre-verified
+addresses. To send to any citizen email, you'll need to apply for SES production
+access in your AWS console.
